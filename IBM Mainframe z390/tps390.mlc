@@ -1,0 +1,303 @@
+TP1		 SUBENTRY BASES=(3)
+PEDIRN	 BAL   10,LEENOBJ
+		 BAL   10,VALNOBJ
+		 CLI   RET,C'0'
+		 BE    INGRESP
+		 WTO   '---------------'
+		 WTO   'CANTIDAD ERRONEA, VUELVA A INGRESAR'
+		 WTO   'RANGO VALIDO: 1-20'
+		 WTO   '---------------'
+		 B     PEDIRN
+		 
+		 
+INGRESP  WTO   'INGRESE LOS PESOS CON SUS RESPECTIVOS DESTINOS'
+		 WTO   'SIENDO:'
+		 WTO   '---------------'
+		 WTO   'B: BARILOCHE'
+		 WTO   'M: MAR DEL PLATA'
+		 WTO   'P: POSADAS'
+		 WTO   'S: SALTA'
+		 WTO   '---------------'
+
+		 LA    4,ARRBAR
+		 LA    5,ARRMAR
+		 LA    6,ARRPOS
+		 LA    7,ARRSAL
+		 
+		 BAL   10,OBTCORR
+		 
+		 ZAP   CANTOBJ,CANTBAR
+		 LA    8,ARRBAR
+		 BAL   10,ORDENAR
+		 BAL   10,BINPDEC
+		 WTO   ' '
+		 WTO   'CANTIDAD PAQUETES A ENVIAR A BARILOCHE:'
+		 UNPK  PAQUSEDX,PAQUSED
+		 MVZ   PAQUSEDX,=X'FFFF'
+		 WTO   MF=(E,WTOBLOCK)
+		 WTO   '---------------'
+		 BAL   10,IMPPAQUE
+		 WTO   '---------------'
+		 
+		 ZAP   CANTOBJ,CANTMAR
+		 LA    8,ARRMAR
+		 BAL   10,ORDENAR
+		 BAL   10,BINPDEC
+		 WTO   'CANTIDAD PAQUETES A ENVIAR A MAR DEL PLATA:'
+		 UNPK  PAQUSEDX,PAQUSED
+		 MVZ   PAQUSEDX,=X'FFFF'
+		 WTO   MF=(E,WTOBLOCK)
+		 WTO   '---------------'
+		 BAL   10,IMPPAQUE
+		 WTO   '---------------'
+		 
+		 ZAP   CANTOBJ,CANTPOS
+		 LA    8,ARRPOS
+		 BAL   10,ORDENAR
+		 BAL   10,BINPDEC
+		 WTO   'CANTIDAD PAQUETES A ENVIAR A POSADAS:'
+		 UNPK  PAQUSEDX,PAQUSED
+		 MVZ   PAQUSEDX,=X'FFFF'
+		 WTO   MF=(E,WTOBLOCK)
+		 WTO   '---------------'
+		 BAL   10,IMPPAQUE
+		 WTO   '---------------'
+		 
+		 ZAP   CANTOBJ,CANTSAL
+		 LA    8,ARRSAL
+		 BAL   10,ORDENAR
+		 BAL   10,BINPDEC
+		 WTO   'CANTIDAD PAQUETES A ENVIAR A SALTA:'
+		 UNPK  PAQUSEDX,PAQUSED
+		 MVZ   PAQUSEDX,=X'FFFF'
+		 WTO   MF=(E,WTOBLOCK)
+		 WTO   '---------------'
+		 BAL   10,IMPPAQUE
+		 WTO   '---------------'
+
+FIN		 SUBEXIT
+
+LEENOBJ	 WTOR  'INGRESE CANTIDAD DE OBJETOS A ENVIAR',AUXCOBJ,,WAITECB
+		 WAIT  ECB=WAITECB
+		 BR    10
+		 
+VALNOBJ  CLI   AUXCOBJ+1,C' '
+		 BNE   VALDIGI
+		 MVC   AUXCOBJ+1(1),AUXCOBJ
+		 MVI   AUXCOBJ,C'0'	 		 
+VALDIGI  CLI   AUXCOBJ,C'0'
+		 BL    ERROR
+		 CLI   AUXCOBJ,C'9'
+		 BH    ERROR
+		 CLI   AUXCOBJ+1,C'0'
+		 BL    ERROR
+		 CLI   AUXCOBJ+1,C'9'
+		 BH    ERROR
+		 PACK  CANTOBJ,AUXCOBJ
+		 CP    CANTOBJ,=P'01'
+		 BL    ERROR
+		 CP    CANTOBJ,CMAXOBJ
+		 BH    ERROR
+		 MVI   RET,C'0'
+		 B     VOLVER
+   		 
+ERROR    MVI   RET,C'1'
+VOLVER   BR    10
+
+OBTCORR  WTOR  'INGRESE PESO DEL OBJETO',AUXPOBJ,,WAITECB
+		 WAIT  ECB=WAITECB
+		 CLI   AUXPOBJ,C'1'
+		 BL    ERRORPES
+		 CLI   AUXPOBJ,C'8'
+		 BH    ERRORPES
+		 PACK  PESOOBJ,AUXPOBJ
+
+INGDEST	 WTOR  'INGRESE DESTINO DEL OBJETO',DESTINO,,WAITECB
+		 WAIT  ECB=WAITECB
+		 CLI   DESTINO,C'B'
+		 BE    PUTARRB
+		 CLI   DESTINO,C'M'
+		 BE    PUTARRM
+		 CLI   DESTINO,C'P'
+		 BE    PUTARRP
+		 CLI   DESTINO,C'S'
+		 BNE   ERRORDES
+		 B     PUTARRS
+		 
+ERRORDES WTO   '---------------'
+		 WTO   'DESTINO ERRONEO, VUELVA A INGRESARLO'
+		 WTO   'OPCIONES VALIDAS: B, M, P o S'
+		 WTO   '---------------'
+		 B     INGDEST
+		 
+ERRORPES WTO   '---------------'
+		 WTO   'PESO ERRONEO, VUELVA A INGRESARLO'
+		 WTO   'RANGO VALIDO: [1,8]'
+		 WTO   '---------------'
+		 B     OBTCORR
+	
+PUTARRB  MVC   0(1,4),PESOOBJ
+		 LA    4,1(4)
+		 AP    CANTBAR,=P'1'
+		 B     DECREMN
+		 
+PUTARRM  MVC   0(1,5),PESOOBJ
+		 LA    5,1(5)
+		 AP    CANTMAR,=P'1'
+		 B     DECREMN
+		 
+PUTARRP  MVC   0(1,6),PESOOBJ
+		 LA    6,1(6)
+		 AP    CANTPOS,=P'1'
+		 B     DECREMN
+		 
+PUTARRS  MVC   0(1,7),PESOOBJ
+		 LA    7,1(7)
+		 AP    CANTSAL,=P'1'
+		 B     DECREMN
+
+DECREMN  SP    CANTOBJ,=P'1'
+		 BC    2,OBTCORR
+		 B     VOLVER  
+		 
+ORDENAR  CP    CANTOBJ,=P'1'
+		 BC    12,TERMINE      *array de 0/1 elem
+		 ZAP   CONT2,CANTOBJ
+		 SP    CONT2,=P'1'
+ITERAR   ZAP   CONT1,CANTOBJ
+		 SP    CONT1,=P'1'
+		 LR    9,8
+COMPARE  CP    0(1,9),1(1,9)
+		 BC    1,SWAP
+SEGUIR	 SP    CONT1,=P'1'
+		 LA    9,1(9)
+		 BC    2,COMPARE
+		 SP    CONT2,=P'1'
+		 BC    2,ITERAR
+TERMINE  BR    10
+SWAP     ZAP   AUX,=P'0'
+		 MVC   AUX,0(9)
+		 MVC   0(1,9),1(9)
+		 MVC   1(1,9),AUX
+		 B     SEGUIR
+		 
+BINPDEC  ZAP   PAQUSED,=P'0' 
+		 CP    CANTOBJ,=P'0'
+		 BE    TERMINE         *array de 0 elem
+		 ZAP   CONT1,CANTOBJ      
+		 LR    9,8               *arreglo de pesos
+		 LA    8,PAQUETES         *8 paq 9 pesos
+		 ZAP   CONT2,=P'20'
+LIMPAQ   MVC   0(1,8),=P'0'
+		 LA    8,1(8)
+		 SP    CONT2,=P'1'
+		 BC    2,LIMPAQ	
+		 LA    8,PAQUETES
+		 LA    11,ARRPAQC
+		 MVI   ARRPAQC,C'/'
+		 MVC   ARRPAQC+1(179),ARRPAQC
+ITERAR2	 ZAP   AUX,0(1,8)
+		 AP    AUX,0(1,9)
+		 CP    AUX,TAMPAQ
+		 BC    12,ALMACEN
+		 LA    8,1(8)
+		 LA    11,9(11)
+		 B     ITERAR2
+	
+ALMACEN  B     SAVEPAQC
+CONTINUE CP    0(1,8),=P'0'
+		 BNE   SUMAR	 
+		 AP    PAQUSED,=P'1'  *si no habia llenado
+SUMAR    ZAP   0(1,8),AUX
+		 LA    9,1(9)
+		 LA    8,PAQUETES
+		 SP    CONT1,=P'1'
+		 BC    2,ITERAR2
+		 BR    10  
+
+SAVEPAQC CLI   0(11),C'/'
+		 BE    GUARDAR
+		 LA    11,1(11)
+		 B     SAVEPAQC
+GUARDAR  UNPK  PESOCORC,0(1,9)
+	     MVZ   PESOCORC,=X'FF'  *No haria falta
+		 MVC   0(1,11),PESOCORC
+		 LA    11,ARRPAQC
+		 B     CONTINUE
+
+IMPPAQUE CP    PAQUSED,=P'00'
+		 BE    DONE
+INICIO   ZAP   AUX2,TAMPAQ
+		 LA    4,PAQUETC+9
+COMPARAR CLI   0(11),C'/'
+		 BNE   MOVECAD
+		 LA    5,0
+		 AP    AUX2,=P'1'
+		 CVB   5,AUX2
+		 AR    11,5
+		 B     IMPRIMIR		 
+MOVECAD  MVC   0(1,4),0(11)
+		 SP    AUX2,=P'1'
+		 LA    11,1(11)
+		 LA    4,1(4)
+		 B     COMPARAR
+IMPRIMIR WTO   '-------'
+		 WTO   MF=(E,WTOBLCK)
+		 WTO   '-------'
+		 MVC   PAQUETC(17),PAQUETC0
+		 SP    PAQUSED,=P'1'
+		 BC    2,INICIO
+DONE	 B     VOLVER
+		
+		 
+*Declaraciones
+	
+WTOBLOCK DC    H'6'
+		 DC    H'0'
+PAQUSEDX DS    XL2
+
+WTOBLCK  DC    H'21'
+         DC    H'0' 
+PAQUETC  DC    C'PAQUETE: --------'
+
+PAQUETC0 DC    C'PAQUETE: --------'
+AUX2     DS    PL8
+
+TESTBLOC DC    H'5'
+		 DC    H'0'
+PESOCORC DS    C
+		 
+PAQUSED  DS    PL2
+PAQUETES DS    20PL1
+TAMPAQ   DC    PL1'8'
+	
+CONT1    DS    PL2
+CONT2    DS    PL2
+AUX      DC    PL2'00'
+
+WAITECB  DC    F'0'
+
+CMAXOBJ  DC    PL2'20'		 
+CANTOBJ	 DS    PL2
+AUXCOBJ  DS    CL2
+		 
+RET      DS    CL1
+
+ARRBAR   DS    20PL1
+ARRMAR   DS    20PL1
+ARRPOS   DS    20PL1
+ARRSAL   DS    20PL1
+
+ARRPAQC  DS    20CL9
+
+CANTBAR  DC    PL2'00'
+CANTMAR  DC    PL2'00'
+CANTPOS  DC    PL2'00'
+CANTSAL  DC    PL2'00'
+
+PESOOBJ  DS    PL1
+AUXPOBJ  DS    C
+
+DESTINO  DS    C
+
+		 END
